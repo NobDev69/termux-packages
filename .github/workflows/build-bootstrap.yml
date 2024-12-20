@@ -15,8 +15,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Update dependencies
-    - name: Update dependencies
+    # Install dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y curl docker.io
@@ -32,15 +32,10 @@ jobs:
       run: |
         docker pull ghcr.io/termux/package-builder:latest
 
-    # Configure environment variables
-    - name: Configure properties
+    # Build Termux Bootstrap
+    - name: Build Bootstrap
       run: |
-        sed -i 's/^TERMUX_APP_PACKAGE=.*/TERMUX_APP_PACKAGE="com.termux.oneshot"/' scripts/properties.sh
-
-    # Run the builder in Docker
-    - name: Run Termux package builder
-      run: |
-        ./scripts/run-docker.sh
+        ./scripts/build-bootstrap.sh
 
     # Upload artifacts
     - name: Upload artifacts
