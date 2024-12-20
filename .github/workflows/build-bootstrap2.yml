@@ -1,0 +1,51 @@
+name: Build Termux Bootstrap
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Required Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io
+
+      - name: Configure TERMUX_APP_PACKAGE
+        run: |
+          sed -i 's/^TERMUX_APP_PACKAGE=.*/TERMUX_APP_PACKAGE="com.termux.oneshot"/' scripts/properties.sh
+
+      - name: Build Docker Environment
+        run: ./scripts/run-docker.sh
+        env:
+          TERMUX_APP_PACKAGE: "com.termux.oneshot"
+
+      - name: Build Bootstrap for Aarch64
+        run: |
+          ./build-package.sh -a aarch64
+          ./scripts/build-bootstrap.sh --architectures aarch64
+
+      - name: Upload Bootstrap Zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: bootstrap-aarch64
+          path: outputs/bootstrap-aarch64.zip
+          
