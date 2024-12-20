@@ -4,37 +4,48 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
+  pull_request:
 
 jobs:
   build-bootstrap:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
+    # Update dependencies
+    - name: Update dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl docker.io
 
-      - name: Configure TERMUX_APP_PACKAGE
-        run: |
-          sed -i 's/^TERMUX_APP_PACKAGE=.*/TERMUX_APP_PACKAGE="com.termux.oneshot"/' scripts/properties.sh
+    # Setup Docker
+    - name: Setup Docker
+      run: |
+        sudo systemctl start docker
+        sudo usermod -aG docker $USER
 
-      - name: Build Docker Environment
-        run: ./scripts/run-docker.sh
-        env:
-          TERMUX_APP_PACKAGE: "com.termux.oneshot"
+    # Pull Termux Package Builder Docker Image
+    - name: Pull Termux package builder
+      run: |
+        docker pull ghcr.io/termux/package-builder:latest
 
-      - name: Build Bootstrap for Aarch64
-        run: |
-          ./build-package.sh -a aarch64
-          ./scripts/build-bootstrap.sh --architectures aarch64
+    # Configure environment variables
+    - name: Configure properties
+      run: |
+        sed -i 's/^TERMUX_APP_PACKAGE=.*/TERMUX_APP_PACKAGE="com.termux.oneshot"/' scripts/properties.sh
 
-      - name: Upload Bootstrap Zip
-        uses: actions/upload-artifact@v3
-        with:
-          name: bootstrap-aarch64
-          path: outputs/bootstrap-aarch64.zip
-          
+    # Run the builder in Docker
+    - name: Run Termux package builder
+      run: |
+        ./scripts/run-docker.sh
+
+    # Upload artifacts
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: termux-bootstrap
+        path: ./output-directory  # Adjust to the correct output path
+        
