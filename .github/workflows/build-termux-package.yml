@@ -30,5 +30,4 @@ jobs:
 
       - name: Start Building Termux Package
         run: |
-          cd /home/builder/termux-packages
           bash oneshot.sh
