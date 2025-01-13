@@ -12,17 +12,21 @@ jobs:
     name: Termux Package Builder
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    container:
-      image: ghcr.io/termux/package-builder:latest
-      options: --cpus 2 --memory 8g
     steps:
+      - name: Go to Home Directory
+        run: cd ~
+
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Pull Docker container
+        run: |
+          docker pull ghcr.io/termux/package-builder:latest
+
       - name: Set up environment variables
         run: |
-          echo "TOKEN=${{ secrets.TOKEN }}" >> $GITHUB_ENV
-          echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> $GITHUB_ENV
+          echo "TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
+          echo "CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
 
       - name: Start Building Termux Package
         run: |
