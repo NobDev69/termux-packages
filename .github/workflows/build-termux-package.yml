@@ -1,0 +1,30 @@
+name: Termux Package Builder
+
+env:
+  TG_TOKEN: ${{ secrets.TOKEN }}
+  TG_CHAT_ID: ${{ secrets.CHAT_ID }}
+
+on:
+  workflow_dispatch:
+
+jobs:
+  termux_package_builder:
+    name: Termux Package Builder
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: ghcr.io/termux/package-builder:latest
+      options: --cpus 2 --memory 8g
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up environment variables
+        run: |
+          echo "TOKEN=${{ secrets.TOKEN }}" >> $GITHUB_ENV
+          echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> $GITHUB_ENV
+
+      - name: Start Building Termux Package
+        run: |
+          cd /home/builder/termux-packages
+          bash oneshot.sh
