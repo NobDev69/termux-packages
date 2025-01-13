@@ -1,8 +1,8 @@
 name: Termux Package Builder
 
 env:
-  TG_TOKEN: ${{ secrets.TOKEN }}
-  TG_CHAT_ID: ${{ secrets.CHAT_ID }}
+  TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
 on:
   workflow_dispatch:
